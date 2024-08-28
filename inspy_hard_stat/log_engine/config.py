@@ -1,0 +1,1 @@
+from inspy_hard_stat.config import LOGGER_CONFIG

@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "inspy-hard-stat"
+version = "1.0.0a1"
+description = ""
+authors = ["Taylor B. <tayjaybabee@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyserial = "^3.5"
+psutil = "^6.0.0"
+requests = "^2.32.3"
+rich = "^13.7.1"
+keyboard = "^0.13.5"
+watchdog = "^4.0.2"
+pywin32 = "^306"
+inspyre-toolbox = {version = "1.6.0-dev.4", source = "test-pypi"}
+
+[tool.poetry.scripts]
+inspy-hard-stat = "Scripts.inspy_hard_stat:main_loop"
+ihs-config-restore = "Scripts.config_restore:main"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.26.0"
+prompt-toolkit = "^3.0.47"
+ptipython = "^1.0.1"
+about-time = "^4.2.1"
+
+
+[[tool.poetry.source]]
+name = "test-pypi"
+url = "https://test.pypi.org/simple/"
+priority = "supplemental"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

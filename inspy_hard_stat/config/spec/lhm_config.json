@@ -1,0 +1,45 @@
+{
+
+    "user_name": {
+        "type": "string",
+        "allowed_values": null,
+        "default": "libre_user",
+        "description": "The user-name for authenticating into the Libre Hardware Monitor webAPI. This is required if authentication has been enabled on the Libre Hardware Monitor webAPI.",
+        "required": false
+    },
+    "password": {
+        "type": "string",
+        "allowed_values": null,
+        "default": "libre_pass",
+        "description": "The password for authenticating into the Libre Hardware Monitor webAPI. This is required if authentication has been enabled on the Libre Hardware Monitor webAPI.",
+        "required": false
+    },
+    "host": {
+        "type": "string",
+        "allowed_values": null,
+        "default": "localhost",
+        "description": "The host for the Libre Hardware Monitor webAPI.",
+        "required": false
+    },
+    "port": {
+        "type": "integer",
+        "allowed_values": null,
+        "default": 8080,
+        "description": "The port for the Libre Hardware Monitor webAPI.",
+        "required": false
+    },
+    "executable_path":  {
+        "type": "string",
+        "allowed_values": null,
+        "default": "C:\\Program Files\\OpenHardwareMonitor\\OpenHardwareMonitor.exe",
+        "description": "The path to the OpenHardwareMonitor executable.",
+        "required": false
+    },
+    "auto_start": {
+        "type": "boolean",
+        "allowed_values": [true, false],
+        "default": false,
+        "description": "Whether or not to automatically start the OpenHardwareMonitor executable.",
+        "required": false
+    }
+}
