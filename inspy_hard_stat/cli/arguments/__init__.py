@@ -1,13 +1,10 @@
 from argparse import ArgumentParser, Namespace
 from inspy_hard_stat.log_engine import LOG_LEVELS
-from inspy_hard_stat.config.developer import DEV_MODE
 from inspy_hard_stat.about.version import PYPI_VERSION_INFO, PyPiVersionInfo
 from inspyre_toolbox.syntactic_sweets.classes.decorators.type_validation import validate_type
-from typing import Type
 from inspy_hard_stat.cli.arguments.meta import SingletonMeta
 from inspy_hard_stat.cli.arguments.utils import is_argument_registered
 from inspy_hard_stat.config.developer import DEV_MODE
-from inspy_hard_stat.log_engine.config import LOGGER_CONFIG
 
 
 class IHSParser(metaclass=SingletonMeta):
@@ -20,6 +17,7 @@ class IHSParser(metaclass=SingletonMeta):
         self.parser = ArgumentParser(prog=prog, description=description)
         self.subparsers = None
         self._configured = False
+        self.register_core_arguments()
 
     @property
     def universal_arguments(self) -> ArgumentParser:
@@ -35,6 +33,44 @@ class IHSParser(metaclass=SingletonMeta):
         if not self._configured:
             register_func(self.parser)
             self._configured = True
+
+    def register_core_arguments(self):
+        """Register the core arguments for the argument parser."""
+        self.parser.add_argument(
+                '-l', '--log-level',
+                choices=LOG_LEVELS,
+                default='info'
+                )
+
+        self.parser.add_argument(
+                '-V', '--version',
+                action='version',
+                version=str(PYPI_VERSION_INFO)
+                )
+
+        self.parser.add_argument(
+                '-C', '--config-filepath',
+                action='store',
+                type=str,
+                help='The path of a currently existing config file or where you want a new one written to.',
+                default='~/Inspyre-Softworks/Inspy-Hard-Stat/config/config.ini'
+                )
+
+        self.parser.add_argument(
+                '-S', '--silence-log-start',
+                required=False,
+                help='Do not let the logger print its initialization information.',
+                action='store_true',
+                default=False
+                )
+
+        self.parser.add_argument(
+                '-r', '--use-rich',
+                required=False,
+                help='Use the Rich library for output formatting.',
+                action='store_true',
+                default=False
+                )
 
     def parse_args(self) -> Namespace:
         """Parse the command-line arguments and return the result."""
@@ -66,7 +102,8 @@ class ParsedArgs:
     A class to handle argument parsing for the Inspy-Hard-Stat command-line tool.
 
     Attributes:
-        parser (ArgumentParser): An argument parser for the command-line interface.
+        parser (ArgumentParser):
+            An argument parser for the command-line interface.
     """
 
     DEVELOPER_MODE = DEV_MODE

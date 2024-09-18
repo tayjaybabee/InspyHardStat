@@ -1,6 +1,14 @@
 import psutil
-from atexit import register, unregister
 from typing import Union
+import os
+import ctypes
+import ctypes.wintypes
+from inspy_hard_stat.ihs_lib.pid import (create_pid_file, find_process_by_pid, find_pids_by_name,
+                                         load_and_validate_pid, DEFAULT_PID_FP)
+from inspy_hard_stat.ihs_lib.libre_hw_monitor.config import CONFIG
+from inspy_hard_stat.config.constants import FILE_SYSTEM_DEFAULTS
+from inspyre_toolbox.proc_man import kill_by_pid
+
 
 
 GPU_INFO_TEMPLATE = {
@@ -11,6 +19,7 @@ GPU_INFO_TEMPLATE = {
                 'Temperatures': {},
                 'Load': {}
             }
+
 
 
 def parse_voltages(child):
@@ -163,44 +172,95 @@ def is_lhwmon_running(exe_path: str, return_pid: bool = False) -> Union[bool, in
     return False
 
 
-def start_libre_hw_monitor(exe_path: str):
+def start_libre_hw_monitor(exe_path: str = CONFIG.executable_path) -> Union[int, None]:
     """
-    Start Libre Hardware Monitor.
+    Start Libre Hardware Monitor with administrator privileges and retrieve the PID.
 
     Parameters:
         exe_path (str):
             The path to the Libre Hardware Monitor executable.
     """
     pid = None
+    pid = load_and_validate_pid(DEFAULT_PID_FP)
+
+    if pid is not None and pid and find_process_by_pid(pid):
+            print(f"Libre Hardware Monitor is already running with PID: {pid}")
+            return pid
+
     pid = is_lhwmon_running(exe_path, return_pid=True) if is_lhwmon_running(exe_path) else None
 
     if pid:
         print(f"Libre Hardware Monitor is already running with PID: {pid}")
     else:
-
         try:
-            proc = psutil.Popen(exe_path)
-            pid = proc.pid
+            # Define the necessary constants and structures
+            SEE_MASK_NOCLOSEPROCESS = 0x00000040
+            SEE_MASK_FLAG_NO_UI = 0x00000400
+            SW_SHOWNORMAL = 1
+
+            class SHELLEXECUTEINFO(ctypes.Structure):
+                _fields_ = [
+                    ("cbSize", ctypes.wintypes.DWORD),
+                    ("fMask", ctypes.wintypes.ULONG),
+                    ("hwnd", ctypes.wintypes.HWND),
+                    ("lpVerb", ctypes.wintypes.LPCWSTR),
+                    ("lpFile", ctypes.wintypes.LPCWSTR),
+                    ("lpParameters", ctypes.wintypes.LPCWSTR),
+                    ("lpDirectory", ctypes.wintypes.LPCWSTR),
+                    ("nShow", ctypes.c_int),
+                    ("hInstApp", ctypes.wintypes.HINSTANCE),
+                    ("lpIDList", ctypes.c_void_p),
+                    ("lpClass", ctypes.wintypes.LPCWSTR),
+                    ("hkeyClass", ctypes.wintypes.HKEY),
+                    ("dwHotKey", ctypes.wintypes.DWORD),
+                    ("hIcon", ctypes.wintypes.HANDLE),
+                    ("hProcess", ctypes.wintypes.HANDLE),
+                ]
+
+            # Initialize the SHELLEXECUTEINFO structure
+            sei = SHELLEXECUTEINFO()
+            sei.cbSize = ctypes.sizeof(SHELLEXECUTEINFO)
+            sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_NO_UI
+            sei.hwnd = None
+            sei.lpVerb = "runas"
+            sei.lpFile = exe_path
+            sei.lpParameters = ""
+            sei.lpDirectory = os.path.dirname(exe_path)
+            sei.nShow = SW_SHOWNORMAL
+            sei.hInstApp = None
+            sei.lpIDList = None
+            sei.lpClass = None
+            sei.hkeyClass = None
+            sei.dwHotKey = 0
+            sei.hIcon = None
+            sei.hProcess = None
+
+            # Call ShellExecuteEx to run the executable as administrator
+            if not ctypes.windll.shell32.ShellExecuteExW(ctypes.byref(sei)):
+                raise ctypes.WinError()
+
+            # Get the process handle and retrieve the PID
+            hProcess = sei.hProcess
+            pid = ctypes.windll.kernel32.GetProcessId(hProcess)
+
             print(f"Started Libre Hardware Monitor with PID: {pid}")
-            create_pid_file()
-        except FileNotFoundError as e:
+
+            # Optionally, you might want to wait for the process to initialize
+            # or perform additional checks here.
+
+            # Close the process handle
+            ctypes.windll.kernel32.CloseHandle(hProcess)
+
+        except Exception as e:
             print(f"Failed to start Libre Hardware Monitor: {e}")
 
+    if pid:
+        create_pid_file(pid)
+
+        if CONFIG.kill_on_exit:
+            from atexit import register
+            from inspy_hard_stat.ihs_lib.pid import remove_pid_file_and_unregister
+            register(remove_pid_file_and_unregister)
+            register(kill_by_pid, pid=pid)
+
     return pid
-
-
-def create_pid_file(pid: int, file_path: str):
-    """
-    Create a PID file containing the given PID.
-
-    Parameters:
-        pid (int):
-            The PID to write to the file.
-
-        file_path (str):
-            The path to the file to write the PID to.
-    """
-    with open(file_path, 'w') as f:
-        f.write(str(pid))
-
-    register(lambda: os.remove(file_path))

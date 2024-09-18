@@ -8,7 +8,8 @@ CONFIG_SYSTEM_NAMES = [
     'serial',
     'alternate_dirs',
     'lhm',
-    'developer_mode'
+    'developer_mode',
+    'core',
 ]
 
 
@@ -18,6 +19,7 @@ def get_file_dir():
 
 @dataclass(frozen=True)
 class SpecFiles:
+    core:           Path = get_file_dir().joinpath('core_config.json')
     logger:         Path = get_file_dir().joinpath('logger_config.json')
     alternate_dirs: Path = get_file_dir().joinpath('alternate_dirs_config.json')
     serial:         Path = get_file_dir().joinpath('serial_config.json')

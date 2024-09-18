@@ -1,0 +1,9 @@
+{
+    "config_dir": {
+        "type": "string",
+        "allowed_values": null,
+        "default": null,
+        "description": "The directory where the configuration files are stored.",
+        "required": false
+    }
+}

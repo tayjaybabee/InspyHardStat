@@ -35,11 +35,40 @@
         "description": "The path to the OpenHardwareMonitor executable.",
         "required": false
     },
+
     "auto_start": {
         "type": "boolean",
         "allowed_values": [true, false],
         "default": false,
         "description": "Whether or not to automatically start the OpenHardwareMonitor executable.",
+        "required": false
+    },
+    "kill_on_exit": {
+        "type": "boolean",
+        "allowed_values": [true, false],
+        "default": false,
+        "description": "Whether or not to kill the OpenHardwareMonitor executable when the program exits.",
+        "required": false
+    },
+    "require_auth": {
+        "type": "boolean",
+        "allowed_values": [true, false],
+        "default": false,
+        "description": "Whether or not to require authentication for the Libre Hardware Monitor webAPI.",
+        "required": false
+    },
+    "protected_password": {
+        "type": "boolean",
+        "allowed_values": [true, false],
+        "default": true,
+        "description": "Whether or not to protect the password in the configuration file by hashing the password with DPAPI.",
+        "required": false
+    },
+    "authentication_stored": {
+        "type": "boolean",
+        "allowed_values": [true, false],
+        "default": false,
+        "description": "Whether or not the authentication information is stored in the configuration file.",
         "required": false
     }
 }

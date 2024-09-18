@@ -13,6 +13,7 @@ from inspy_hard_stat.config.errors import (
     )
 from inspy_hard_stat.config.constants import CONFIG_SYSTEM_NAMES, FILE_SYSTEM_DEFAULTS
 from inspy_hard_stat.utils import wait_for_changes
+from inspy_hard_stat.config.utils import convert_str_to_type
 
 
 class ConfigFactory:
@@ -31,7 +32,7 @@ class ConfigFactory:
             if id(instance) == target_id:
                 return instance
 
-    def __new__(cls, config_system: str, *args, **kwargs):
+    def __new__(cls, config_system: str, **kwargs):
         config_system = config_system.lower()
         if config_system not in cls._instances:
             instance = super().__new__(cls)
@@ -65,6 +66,11 @@ class ConfigFactory:
             )
         self._initialized = True
 
+    def _get_type_from_spec(self, item):
+        spec = self.__dict__['_ConfigFactory__config_spec'].spec
+        if item in spec:
+            return spec[item]['type']
+
 
     def _initialize_attributes(
             self,
@@ -96,6 +102,19 @@ class ConfigFactory:
 
         if auto_load and not self.__loaded_config:
             self.create_config_file()
+
+    def _return_from_config(self, item, section_name, strict_case=False):
+        if not strict_case:
+            section_name = section_name.upper()
+
+        if item in self.config_spec.spec:
+            type_name = self.config_spec.spec[item]['type']
+            val = self.config.get(section_name, item, fallback=None)
+            if val is None:
+                val = self.config_spec.spec[item]['default']
+
+            type_obj = convert_str_to_type(val, type_name)
+            return type_obj
 
     def _return_from_defaults(self, item):
         from inspy_hard_stat.utils import search_file_for_user_line
@@ -140,12 +159,20 @@ class ConfigFactory:
 
         #print(self.__dict__['_ConfigFactory__config'].defaults())
 
+        res = None
+
         if item in self.__dict__:
             return self.__dict__[item]
         elif item in self.__dict__['_ConfigFactory__config'].defaults():
-            return self.__dict__['_ConfigFactory__config'].get(section_name, item)
+            res = self._return_from_config(item, section_name)
         elif item in self.__dict__['_ConfigFactory__config_spec'].defaults:
-            return self._return_from_defaults(item)
+            res = self._return_from_defaults(item)
+
+
+        if res is not None:
+            return convert_str_to_type(res, self._get_type_from_spec(item))
+
+
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{item}'")
 
 
@@ -158,7 +185,7 @@ class ConfigFactory:
         elif key in self.__dict__['_ConfigFactory__config'].defaults():
             section_name = self.determine_section()
             self._check_section(section_name)
-            self.__dict__['_ConfigFactory__config'].set(section_name, key, value)
+            self.__dict__['_ConfigFactory__config'].set(section_name, key, str(value))
             self.__config_changed = True
 
         if key in self.config.defaults():
@@ -573,13 +600,26 @@ class ConfigFactory:
 
         self.save_config(skip_backup=True)
 
-    def delete_config_file(self) -> None:
+    def delete_config_file(self, skip_backup=False) -> None:
         """
         Delete the configuration file.
+
+        Parameters:
+            skip_backup (bool):
+                - True:
+                    A backup of the configuration file will not be created before deleting it.
+                - False:
+                    A backup of the configuration file will be created before deleting it.
 
         Returns:
             None
         """
+
+        if not skip_backup:
+            self.backup_config()
+        else:
+            warn("Skipping backup per user request.")
+
         self.config_file_path.unlink()
 
     def determine_section(self):
@@ -826,3 +866,6 @@ class ConfigFactory:
             warn("Configuration specification and configuration file do not match. Synchronizing...")
             self.generate_config()
             self.save_config()
+
+    def __reduce__(self):
+        return (self.__class__, (self.__config_system,))

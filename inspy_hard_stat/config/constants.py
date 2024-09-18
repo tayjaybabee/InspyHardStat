@@ -5,11 +5,20 @@ from inspy_hard_stat.about import __AUTHOR__, __PROG_NAME__
 APP_DIRS = AppDirs(appname=__PROG_NAME__, appauthor=__AUTHOR__)
 
 CONFIG_SYSTEM_NAMES = [
-        'serial',
+        'lhm',
         'logger',
         'alternate_dirs',
-        'developer_mode'
+        'developer_mode',
+        'serial'
         ]
+
+CONFIG_SYSTEM_NAME_MAP = {
+        'lhm':            'Libre Hardware Monitor',
+        'logger':         'Logger',
+        'alternate_dirs': 'Alternate Directories',
+        'developer_mode': 'Developer Mode',
+        'serial':         'Serial',
+        }
 
 FILE_SYSTEM_DEFAULTS = {
         'dirs':  {
@@ -35,3 +44,6 @@ FILE_SYSTEM_DEFAULTS = {
                 'log':                   APP_DIRS.user_log_path / 'log.ini',
                 },
         }
+
+
+DEFAULT_DIRS = FILE_SYSTEM_DEFAULTS['dirs']

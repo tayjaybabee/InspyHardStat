@@ -164,3 +164,13 @@ def get_provisioned_path_str(path: Union[str, Path]) -> str:
         str: The string representation of the path.
     """
     return str(provision_path(path))
+
+
+def return_wanted(cls):
+    cls_map = {}
+
+    for item in dir(cls):
+        if not callable(getattr(cls, item)) and not item.startswith('_'):
+            cls_map[item] = getattr(cls, item)
+
+    return cls_map

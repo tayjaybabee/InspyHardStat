@@ -99,7 +99,7 @@ class InspyHardStatError(RichRenderableError):
     __info_unavailable = 'No additional information is available.'
 
     def __init__(self, message=None, code=0):
-        """Initializes the IPRLibError with an optional message and code."""
+        """Initializes the InspyHardStatError with an optional message and code."""
         print(self.__class__.__name__)
         self.__info_collection = []
         self._additional_info = message if message is not None else self.__info_unavailable

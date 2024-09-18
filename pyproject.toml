@@ -10,11 +10,13 @@ python = "^3.10"
 pyserial = "^3.5"
 psutil = "^6.0.0"
 requests = "^2.32.3"
-rich = "^13.7.1"
+rich = "^13.8.1"
 keyboard = "^0.13.5"
-watchdog = "^4.0.2"
+watchdog = "^5.0.2"
 pywin32 = "^306"
-inspyre-toolbox = {version = "1.6.0-dev.4", source = "test-pypi"}
+inspyre-toolbox = "1.6.0-dev.8"
+py-cpuinfo = "^9.0.0"
+pynacl = { version = "^1.5", markers = "sys_platform == 'linux'" }
 
 [tool.poetry.scripts]
 inspy-hard-stat = "Scripts.inspy_hard_stat:main_loop"

@@ -6,11 +6,21 @@ from requests import ReadTimeout
 CONFIG = Config()
 
 
-def authentication():
+def authentication(user_name, password):
+    """
+    Authenticate with the HTTP server using the given username and password.
 
-    user_name = CONFIG.user_name
-    password = CONFIG.password
+    Parameters:
+        user_name (str):
+            The username to authenticate with.
 
+        password:
+            The password to authenticate with.
+
+    Returns:
+        HTTPBasicAuth:
+            An object that can be used to authenticate with the HTTP server.`
+    """
     return HTTPBasicAuth(user_name, password)
 
 def request_data(url=None):
